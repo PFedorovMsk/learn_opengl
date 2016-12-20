@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/">
+        <file>floor.fs</file>
+        <file>floor.vs</file>
+        <file>smoke_texture.png</file>
+        <file>smoke.fs</file>
+        <file>smoke.vs</file>
+    </qresource>
+</RCC>
