@@ -80,25 +80,24 @@ void SmokeScene::initSmoke()
     m_smokeShaderProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/smoke.fs");
     m_smokeShaderProgram.link();
 
-    std::vector<float> v, r;
-    int                density = 2000;
-    for (int i = 0; i < m_particlesCount; ++i) {
-        v.push_back(float(i));
-        for (int j = 0; j < 3; ++j) {
-            float rr = rand() % (density + 1); // -> [0 .. X]
-            rr -= density / 2.0;               // -> [-X/2 .. X/2]
-            rr /= density / 2.0;               // -> [-1 .. 1]
-            r.push_back(rr);
-        }
-    }
+    GLsizeiptr pCount = GLsizeiptr(m_particlesCount);
+    GLsizeiptr fSize  = GLsizeiptr(sizeof(float));
 
+    QVector<float> particles(m_particlesCount);
+    for (int i = 0; i < m_particlesCount; ++i) {
+        particles[i] = float(i);
+    }
     glGenBuffers(1, &m_particlesVbo);
     glBindBuffer(GL_ARRAY_BUFFER, m_particlesVbo);
-    glBufferData(GL_ARRAY_BUFFER, v.size() * sizeof(v[0]), v.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, pCount * fSize, particles.data(), GL_STATIC_DRAW);
 
+    QVector<float> randoms(m_particlesCount * 3);
+    for (int i = 0; i < m_particlesCount * 3; ++i) {
+        randoms[i] = mix(-1.0, 1.0, randFloat());
+    }
     glGenBuffers(1, &m_randomVbo);
     glBindBuffer(GL_ARRAY_BUFFER, m_randomVbo);
-    glBufferData(GL_ARRAY_BUFFER, r.size() * sizeof(r[0]), r.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, pCount * fSize * 3, randoms.data(), GL_STATIC_DRAW);
 
     QVector<float> velocities(3 * m_particlesCount);
     QVector3D      vec;
@@ -118,7 +117,7 @@ void SmokeScene::initSmoke()
     }
     glGenBuffers(1, &m_velocitiesVbo);
     glBindBuffer(GL_ARRAY_BUFFER, m_velocitiesVbo);
-    glBufferData(GL_ARRAY_BUFFER, velocities.size() * sizeof(velocities[0]), velocities.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, pCount * fSize * 3, velocities.data(), GL_STATIC_DRAW);
 
     m_texture = new QOpenGLTexture(QImage(":/smoke_texture.png"));
 
@@ -144,20 +143,20 @@ void SmokeScene::paintSmoke()
     m_smokeShaderProgram.setUniformValue("sampler", 0);
     m_smokeShaderProgram.setUniformValue("mvp", mvpMatrix());
 
-    GLuint att_random = m_smokeShaderProgram.attributeLocation("random");
-    glEnableVertexAttribArray(att_random);
+    GLuint attribRandom = GLuint(m_smokeShaderProgram.attributeLocation("random"));
+    glEnableVertexAttribArray(attribRandom);
     glBindBuffer(GL_ARRAY_BUFFER, m_randomVbo);
-    glVertexAttribPointer(att_random, 3, GL_FLOAT, GL_TRUE, 0, 0);
+    glVertexAttribPointer(attribRandom, 3, GL_FLOAT, GL_TRUE, 0, 0);
 
-    GLuint att_velocity = m_smokeShaderProgram.attributeLocation("velocity");
-    glEnableVertexAttribArray(att_velocity);
+    GLuint attribVelocity = GLuint(m_smokeShaderProgram.attributeLocation("velocity"));
+    glEnableVertexAttribArray(attribVelocity);
     glBindBuffer(GL_ARRAY_BUFFER, m_velocitiesVbo);
-    glVertexAttribPointer(att_velocity, 3, GL_FLOAT, GL_TRUE, 0, 0);
+    glVertexAttribPointer(attribVelocity, 3, GL_FLOAT, GL_TRUE, 0, 0);
 
-    GLuint att_particles = m_smokeShaderProgram.attributeLocation("vertex");
-    glEnableVertexAttribArray(att_particles);
+    GLuint attribParticles = GLuint(m_smokeShaderProgram.attributeLocation("vertex"));
+    glEnableVertexAttribArray(attribParticles);
     glBindBuffer(GL_ARRAY_BUFFER, m_particlesVbo);
-    glVertexAttribPointer(att_particles, 1, GL_FLOAT, GL_TRUE, 0, 0);
+    glVertexAttribPointer(attribParticles, 1, GL_FLOAT, GL_TRUE, 0, 0);
 
     glDrawArrays(GL_POINTS, 0, m_particlesCount);
 
