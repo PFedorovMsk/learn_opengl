@@ -22,7 +22,7 @@ void Scene::enableLines(bool enable)
     update();
 }
 
-void Scene::setData(const QVector<QVector3D> &curve, const QVector<QVector3D> basePoints)
+void Scene::setData(const QVector<QVector3D> &curve, const QVector<QVector3D> &basePoints)
 {
     m_curve      = curve;
     m_basePoints = basePoints;

@@ -17,7 +17,7 @@ public:
     void enableBasePoints(bool enable);
     void enableLines(bool enable);
 
-    void setData(const QVector<QVector3D> &curve, const QVector<QVector3D> basePoints);
+    void setData(const QVector<QVector3D> &curve, const QVector<QVector3D> &basePoints);
     void setCurrentBasePoint(int index);
 
 protected:
